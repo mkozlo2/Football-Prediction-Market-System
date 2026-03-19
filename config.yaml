@@ -1,6 +1,41 @@
-test_size: 0.2
-split_mode: season
-max_iter: 500
-random_state: 42
-calibration_method: sigmoid
-calibration_cv: 3
+data:
+  leagues:
+    - E0
+    - D1
+    - SP1
+    - I1
+    - F1
+  seasons:
+    - "2223"
+    - "2324"
+    - "2425"
+  cache_dir: data/raw
+
+features:
+  rolling_windows:
+    - 3
+    - 5
+    - 10
+  use_elo: true
+  min_training_rows: 150
+
+model:
+  test_size: 0.2
+  split_mode: season
+  max_iter: 500
+  random_state: 42
+  calibration_method: sigmoid
+  calibration_cv: 3
+
+strategy:
+  bookmaker_prefix: B365
+  edge_threshold: 0.03
+  max_fractional_kelly: 0.25
+  max_bet_fraction_of_bankroll: 0.05
+  min_decimal_odds: 1.5
+  max_decimal_odds: 6.0
+  bankroll_start: 1000.0
+
+outputs:
+  model_dir: artifacts/models
+  report_dir: artifacts/reports

@@ -3,6 +3,7 @@ from __future__ import annotations
 from collections import defaultdict, deque
 from dataclasses import dataclass
 from typing import Iterable
+
 import numpy as np
 import pandas as pd
 
@@ -32,8 +33,8 @@ def _new_team_state(max_window: int) -> TeamState:
 
 
 def _safe_mean(items: Iterable[float]) -> float:
-    items = list(items)
-    return float(np.mean(items)) if items else 0.0
+    values = list(items)
+    return float(np.mean(values)) if values else 0.0
 
 
 def _result_points(result: str, side: str) -> int:
@@ -54,8 +55,15 @@ def _expected_score(elo_a: float, elo_b: float, home_advantage: float = 60.0) ->
 
 
 def build_features(matches: pd.DataFrame, rolling_windows: list[int], use_elo: bool = True) -> pd.DataFrame:
+    if not rolling_windows:
+        raise ValueError("rolling_windows must contain at least one window size.")
+
+    windows = sorted({int(window) for window in rolling_windows if int(window) > 0})
+    if not windows:
+        raise ValueError("rolling_windows must contain positive integers.")
+
     matches = matches.sort_values("Date").reset_index(drop=True).copy()
-    max_window = max(rolling_windows)
+    max_window = max(windows)
     teams: dict[str, TeamState] = defaultdict(lambda: _new_team_state(max_window=max_window))
     rows: list[dict] = []
 
@@ -65,17 +73,19 @@ def build_features(matches: pd.DataFrame, rolling_windows: list[int], use_elo: b
         home_state = teams[home]
         away_state = teams[away]
 
-row = {
-    "match_id": match["match_id"],
-    "Date": match["Date"],
-    "league_code": match["league_code"],
-    "season_code": match["season_code"],
-    "HomeTeam": home,
-    "AwayTeam": away,
-    "FTR": match["FTR"],
-}
+        row = {
+            "match_id": match["match_id"],
+            "Date": match["Date"],
+            "league_code": match["league_code"],
+            "season_code": match["season_code"],
+            "HomeTeam": home,
+            "AwayTeam": away,
+            "FTR": match["FTR"],
+            "FTHG": match.get("FTHG", np.nan),
+            "FTAG": match.get("FTAG", np.nan),
+        }
 
-        for window in rolling_windows:
+        for window in windows:
             row[f"home_avg_gf_{window}"] = _safe_mean(list(home_state.gf)[-window:])
             row[f"home_avg_ga_{window}"] = _safe_mean(list(home_state.ga)[-window:])
             row[f"home_avg_shots_{window}"] = _safe_mean(list(home_state.shots_for)[-window:])
@@ -108,7 +118,6 @@ row = {
 
         rows.append(row)
 
-        # Update states after generating pre-match features
         home_goals = float(match.get("FTHG", 0.0) or 0.0)
         away_goals = float(match.get("FTAG", 0.0) or 0.0)
         home_shots = float(match.get("HS", 0.0) or 0.0)

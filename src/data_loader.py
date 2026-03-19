@@ -61,14 +61,17 @@ def load_matches(csv_paths: Iterable[Path]) -> pd.DataFrame:
     frames: list[pd.DataFrame] = []
     for path in csv_paths:
         df = pd.read_csv(path)
-        df["source_file"] = path.name
-        df["league_code"] = path.stem
-        df["season_code"] = path.parent.name
         keep_cols = [c for c in REQUIRED_COLUMNS + ODDS_CANDIDATES if c in df.columns]
         missing_core = [c for c in ["Date", "HomeTeam", "AwayTeam", "FTR"] if c not in df.columns]
         if missing_core:
             raise ValueError(f"Missing required columns {missing_core} in {path}")
-        frames.append(df[keep_cols + ["source_file", "league_code", "season_code"]].copy())
+        trimmed = df[keep_cols].copy()
+        trimmed = trimmed.assign(
+            source_file=path.name,
+            league_code=path.stem,
+            season_code=path.parent.name,
+        )
+        frames.append(trimmed)
 
     all_matches = pd.concat(frames, ignore_index=True)
     all_matches["Date"] = pd.to_datetime(all_matches["Date"], dayfirst=True, errors="coerce")

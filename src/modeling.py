@@ -81,7 +81,6 @@ def train_outcome_model(feature_df: pd.DataFrame, config: dict) -> ModelArtifact
         ("clf", LogisticRegression(
             max_iter=config.get("max_iter", 500),
             random_state=config.get("random_state", 42),
-            multi_class="auto",
         )),
     ])
 
