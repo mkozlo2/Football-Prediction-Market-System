@@ -1,0 +1,98 @@
+# =========================
+# Python
+# =========================
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# =========================
+# Distribution / packaging
+# =========================
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# =========================
+# Jupyter Notebooks
+# =========================
+.ipynb_checkpoints/
+
+# =========================
+# Logs & temp files
+# =========================
+*.log
+logs/
+tmp/
+temp/
+*.tmp
+
+# =========================
+# OS files
+# =========================
+.DS_Store
+Thumbs.db
+
+# =========================
+# IDE / Editor
+# =========================
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# =========================
+# Data (IMPORTANT)
+# =========================
+data/raw/
+data/processed/
+data/interim/
+
+# If you ever want to keep sample data:
+!data/raw/.gitkeep
+
+# =========================
+# Models & Artifacts
+# =========================
+artifacts/
+models/
+*.joblib
+*.pkl
+
+# =========================
+# Reports / Outputs
+# =========================
+reports/
+*.png
+*.pdf
+*.html
+
+# =========================
+# Environment variables
+# =========================
+.env
+.env.*
+
+# =========================
+# Testing
+# =========================
+.coverage
+htmlcov/
+.pytest_cache/
+
+# =========================
+# Docker
+# =========================
+*.dockerignore
+
+# =========================
+# Misc
+# =========================
+*.bak
+*.old
