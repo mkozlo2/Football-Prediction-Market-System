@@ -147,31 +147,5 @@ artifacts/reports/
   edge_distribution.png
 ```
 
-## 6) How to explain this in an interview
 
-You can say:
 
-> I built an end-to-end football prediction market trading system in Python. It ingests historical match and bookmaker data, engineers rolling form and Elo-based features, trains a calibrated probabilistic classifier, compares model probabilities against market-implied probabilities, sizes trades with fractional Kelly, and evaluates performance through a bankroll backtest and post-trade reporting.
-
-## 7) Suggested upgrades to make this even stronger
-
-### High-value upgrades
-- Replace logistic regression with LightGBM or XGBoost
-- Add team news / injuries / rest days / travel distance
-- Add closing-line value analysis
-- Add exchange-style commission modeling
-- Build a FastAPI service for real-time pricing
-- Add in-play state updates using time, score, and red cards
-- Add market-making logic instead of pure directional betting
-
-### Strong portfolio extras
-- Dockerize the app
-- Add unit tests
-- Add CI with GitHub Actions
-- Build a dashboard with Streamlit
-
-## 8) Notes
-
-- This MVP is **pregame-focused**, which is enough for a strong portfolio project.
-- You can later extend it into **in-play trading** by adding live state features and a real-time odds feed.
-- Historical data availability depends on the source columns present in the CSVs.
