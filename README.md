@@ -180,25 +180,31 @@ Run linting:
 ruff check .
 ```
 
-## Example recruiter-friendly summary
+## 6) How to explain this in an interview
 
-You can describe the project like this:
+You can say:
 
-> Built an end-to-end football prediction market trading system in Python that ingests historical match and bookmaker data, engineers leakage-safe rolling and Elo features, trains a calibrated probabilistic classifier, compares model probabilities against market-implied prices, sizes trades with fractional Kelly, and evaluates performance with bankroll backtesting and reporting.
+> I built an end-to-end football prediction market trading system in Python. It ingests historical match and bookmaker data, engineers rolling form and Elo-based features, trains a calibrated probabilistic classifier, compares model probabilities against market-implied probabilities, sizes trades with fractional Kelly, and evaluates performance through a bankroll backtest and post-trade reporting.
 
-## Suggested next upgrades
+## 7) Suggested upgrades to make this even stronger
 
-High-value next steps if you want to make the project even stronger:
+### High-value upgrades
+- Replace logistic regression with LightGBM or XGBoost
+- Add team news / injuries / rest days / travel distance
+- Add closing-line value analysis
+- Add exchange-style commission modeling
+- Build a FastAPI service for real-time pricing
+- Add in-play state updates using time, score, and red cards
+- Add market-making logic instead of pure directional betting
 
-- add a FastAPI pricing endpoint
-- add a Streamlit dashboard for match-level predictions
-- compare against simple baselines such as market-only or always-home-win
-- add calibration plots and drawdown charts
-- add GitHub Actions for CI
-- replace logistic regression with LightGBM or XGBoost
+### Strong portfolio extras
+- Dockerize the app
+- Add unit tests
+- Add CI with GitHub Actions
+- Build a dashboard with Streamlit
 
-## Notes
+## 8) Notes
 
-- This project is pre-match focused rather than live/in-play.
-- Historical data quality depends on the source CSV columns available for each league and season.
-- The strategy is for simulation and portfolio demonstration, not real-money trading advice.
+- This MVP is **pregame-focused**, which is enough for a strong portfolio project.
+- You can later extend it into **in-play trading** by adding live state features and a real-time odds feed.
+- Historical data availability depends on the source columns present in the CSVs.
