@@ -1,13 +1,14 @@
 from __future__ import annotations
 
 import argparse
-from src.settings import load_settings
+
+from src.backtest import run_backtest
 from src.data_loader import ensure_data, load_matches
 from src.features import build_features
-from src.modeling import train_outcome_model, save_model
-from src.strategy import generate_trade_signals
-from src.backtest import run_backtest
+from src.modeling import save_model, train_outcome_model
 from src.reporting import save_reports
+from src.settings import load_settings
+from src.strategy import generate_trade_signals
 
 
 def run_pipeline(config_path: str = "config.yaml") -> None:

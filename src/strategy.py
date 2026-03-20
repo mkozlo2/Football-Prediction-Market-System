@@ -44,7 +44,10 @@ def generate_trade_signals(test_df: pd.DataFrame, proba: np.ndarray, config: dic
         if not all(col in match.index for col in odds_cols):
             continue
 
-        market_odds = np.array([match[odds_cols[0]], match[odds_cols[1]], match[odds_cols[2]]], dtype=float)
+        market_odds = np.array(
+            [match[odds_cols[0]], match[odds_cols[1]], match[odds_cols[2]]],
+            dtype=float,
+        )
         if np.any(np.isnan(market_odds)):
             continue
 

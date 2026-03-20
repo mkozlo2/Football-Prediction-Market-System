@@ -1,177 +1,204 @@
 # Football Prediction Market Trading System
 
-An end-to-end Python project for building a **football match outcome model**, comparing it to bookmaker pricing, generating trading signals, sizing bets with **fractional Kelly**, and running a backtest with a bankroll curve.
+An end-to-end Python project that prices football matches, compares model probabilities against bookmaker odds, generates simulated bets, and tracks bankroll performance through a backtest.
 
-## 1) Architecture
+This project is designed to look and feel like a compact quant trading pipeline:
+
+- ingest historical match and odds data
+- engineer leakage-safe pre-match features
+- train a calibrated multiclass outcome model
+- convert bookmaker odds into implied probabilities
+- place simulated trades when model edge exceeds market price
+- size positions with fractional Kelly
+- evaluate profit/loss, ROI, hit rate, and bankroll growth
+
+## Why this project is useful
+
+This is stronger than a generic sports prediction script because it connects machine learning to a decision system. Instead of stopping at accuracy, it asks the portfolio-relevant question:
+
+`Would these predictions have led to profitable trading decisions?`
+
+That makes it a good showcase project for roles involving:
+
+- applied machine learning
+- data pipelines
+- probabilistic modeling
+- decision systems
+- trading or betting market analysis
+
+## Pipeline overview
 
 ```text
-                    ┌──────────────────────────────┐
-                    │ football-data.co.uk CSVs     │
-                    │ historical matches + odds    │
-                    └──────────────┬───────────────┘
-                                   │
-                                   ▼
-                    ┌──────────────────────────────┐
-                    │ data_loader.py               │
-                    │ download + clean raw data    │
-                    └──────────────┬───────────────┘
-                                   │
-                                   ▼
-                    ┌──────────────────────────────┐
-                    │ features.py                  │
-                    │ rolling form + Elo + stats   │
-                    └──────────────┬───────────────┘
-                                   │
-                                   ▼
-                    ┌──────────────────────────────┐
-                    │ modeling.py                  │
-                    │ calibrated multinomial model │
-                    └──────────────┬───────────────┘
-                                   │ model probs
-                                   ▼
-                    ┌──────────────────────────────┐
-                    │ strategy.py                  │
-                    │ market probs vs model probs  │
-                    │ edge detection + Kelly size  │
-                    └──────────────┬───────────────┘
-                                   │ trade signals
-                                   ▼
-                    ┌──────────────────────────────┐
-                    │ backtest.py                  │
-                    │ PnL + bankroll simulation    │
-                    └──────────────┬───────────────┘
-                                   │
-                                   ▼
-                    ┌──────────────────────────────┐
-                    │ reporting.py                 │
-                    │ CSV logs + JSON + charts     │
-                    └──────────────────────────────┘
+Historical CSVs -> Data loading -> Feature engineering -> Calibrated model
+              -> Market probability comparison -> Bet sizing -> Backtest -> Reports
 ```
 
-## 2) Project structure
+## Project structure
 
 ```text
 football_prediction_market_system/
-├── config.yaml
-├── main.py
-├── README.md
-├── requirements.txt
-└── src/
-    ├── __init__.py
-    ├── backtest.py
-    ├── data_loader.py
-    ├── features.py
-    ├── modeling.py
-    ├── reporting.py
-    ├── settings.py
-    └── strategy.py
+|-- config.yaml
+|-- main.py
+|-- Dockerfile
+|-- .dockerignore
+|-- pyproject.toml
+|-- requirements.txt
+|-- requirements-dev.txt
+|-- src/
+|   |-- backtest.py
+|   |-- data_loader.py
+|   |-- features.py
+|   |-- modeling.py
+|   |-- reporting.py
+|   |-- settings.py
+|   `-- strategy.py
+`-- tests/
+    |-- test_backtest.py
+    |-- test_features.py
+    `-- test_strategy.py
 ```
 
-## 3) What the system does
+## Data
 
-- Downloads historical football results and odds
-- Builds pre-match features only from past information
-- Trains a calibrated 3-class model for:
-  - Home win
-  - Draw
-  - Away win
-- Converts bookmaker odds into implied market probabilities
-- Identifies positive-edge bets where:
-  - `model probability > market probability + threshold`
-- Sizes positions using **fractional Kelly**
-- Runs a bankroll backtest and saves reports
+The project uses historical football CSVs from [football-data.co.uk](https://www.football-data.co.uk/), including:
 
-## 4) Step-by-step setup
+- match outcomes
+- goals scored
+- shots and shots on target
+- bookmaker odds
 
-### Step 1: Install Python
-Use **Python 3.11+**.
+By default, the pipeline is configured to use:
 
-Check version:
+- Premier League: `E0`
+- Bundesliga: `D1`
+- La Liga: `SP1`
+- Serie A: `I1`
+- Ligue 1: `F1`
 
-```bash
-python --version
-```
+Across seasons:
 
-### Step 2: Create a project folder
-Either unzip this project or clone/copy it into a folder.
+- `2022/23`
+- `2023/24`
+- `2024/25`
 
-### Step 3: Create a virtual environment
+## Features
 
-**Windows (PowerShell):**
+The model builds pre-match features using only information available before kickoff:
+
+- rolling goals for / against
+- rolling shots and shots on target
+- rolling points form
+- home vs away feature differences
+- Elo ratings and Elo difference
+
+This keeps the modeling setup closer to a real trading environment and avoids target leakage.
+
+## Modeling and trading logic
+
+### Model
+
+- multinomial logistic regression
+- median imputation
+- feature scaling
+- probability calibration with `CalibratedClassifierCV`
+
+### Decision rule
+
+For each match:
+
+1. predict home / draw / away probabilities
+2. convert bookmaker odds into implied market probabilities
+3. remove bookmaker overround
+4. compute edge = `model_prob - market_prob`
+5. bet only if the edge exceeds a threshold
+6. size stake using fractional Kelly
+
+### Backtest outputs
+
+The backtest tracks:
+
+- bankroll over time
+- total profit
+- total amount staked
+- ROI
+- hit rate
+- trade log
+
+## Quick start
+
+### Local setup
 
 ```powershell
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
-```
-
-**macOS/Linux:**
-
-```bash
-python3 -m venv .venv
-source .venv/bin/activate
-```
-
-### Step 4: Install dependencies
-
-```bash
 pip install -r requirements.txt
-```
-
-### Step 5: Run the full pipeline
-
-```bash
 python main.py --config config.yaml
 ```
 
-This will:
-- download match CSVs into `data/raw/`
-- train the model
-- run the strategy backtest
-- save charts and logs into `artifacts/`
+Artifacts are written to:
 
-## 5) Output files
+- `artifacts/models/`
+- `artifacts/reports/`
 
-After running, check:
+## Docker
 
-```text
-artifacts/models/
-  outcome_model.joblib
-  feature_columns.json
-  metrics.json
+Build the container:
 
-artifacts/reports/
-  trade_log.csv
-  model_metrics.json
-  backtest_summary.json
-  equity_curve.png
-  edge_distribution.png
+```bash
+docker build -t football-prediction-market .
 ```
 
-## 6) How to explain this in an interview
+Run the pipeline:
 
-You can say:
+```bash
+docker run --rm -v ${PWD}/artifacts:/app/artifacts football-prediction-market
+```
 
-> I built an end-to-end football prediction market trading system in Python. It ingests historical match and bookmaker data, engineers rolling form and Elo-based features, trains a calibrated probabilistic classifier, compares model probabilities against market-implied probabilities, sizes trades with fractional Kelly, and evaluates performance through a bankroll backtest and post-trade reporting.
+On PowerShell, if `${PWD}` causes issues, use:
 
-## 7) Suggested upgrades to make this even stronger
+```powershell
+docker run --rm -v "${PWD}\artifacts:/app/artifacts" football-prediction-market
+```
 
-### High-value upgrades
-- Replace logistic regression with LightGBM or XGBoost
-- Add team news / injuries / rest days / travel distance
-- Add closing-line value analysis
-- Add exchange-style commission modeling
-- Build a FastAPI service for real-time pricing
-- Add in-play state updates using time, score, and red cards
-- Add market-making logic instead of pure directional betting
+## Testing and linting
 
-### Strong portfolio extras
-- Dockerize the app
-- Add unit tests
-- Add CI with GitHub Actions
-- Build a dashboard with Streamlit
+Install dev tools:
 
-## 8) Notes
+```powershell
+pip install -r requirements-dev.txt
+```
 
-- This MVP is **pregame-focused**, which is enough for a strong portfolio project.
-- You can later extend it into **in-play trading** by adding live state features and a real-time odds feed.
-- Historical data availability depends on the source columns present in the CSVs.
+Run tests:
+
+```powershell
+pytest
+```
+
+Run linting:
+
+```powershell
+ruff check .
+```
+
+## Example recruiter-friendly summary
+
+You can describe the project like this:
+
+> Built an end-to-end football prediction market trading system in Python that ingests historical match and bookmaker data, engineers leakage-safe rolling and Elo features, trains a calibrated probabilistic classifier, compares model probabilities against market-implied prices, sizes trades with fractional Kelly, and evaluates performance with bankroll backtesting and reporting.
+
+## Suggested next upgrades
+
+High-value next steps if you want to make the project even stronger:
+
+- add a FastAPI pricing endpoint
+- add a Streamlit dashboard for match-level predictions
+- compare against simple baselines such as market-only or always-home-win
+- add calibration plots and drawdown charts
+- add GitHub Actions for CI
+- replace logistic regression with LightGBM or XGBoost
+
+## Notes
+
+- This project is pre-match focused rather than live/in-play.
+- Historical data quality depends on the source CSV columns available for each league and season.
+- The strategy is for simulation and portfolio demonstration, not real-money trading advice.

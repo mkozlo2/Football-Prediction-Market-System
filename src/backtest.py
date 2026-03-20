@@ -3,7 +3,10 @@ from __future__ import annotations
 import pandas as pd
 
 
-def run_backtest(signals: pd.DataFrame, starting_bankroll: float) -> tuple[pd.DataFrame, dict[str, float]]:
+def run_backtest(
+    signals: pd.DataFrame,
+    starting_bankroll: float,
+) -> tuple[pd.DataFrame, dict[str, float]]:
     bankroll = float(starting_bankroll)
     rows: list[dict] = []
     placed_bets = 0

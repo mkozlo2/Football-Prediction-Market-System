@@ -1,18 +1,30 @@
 from __future__ import annotations
 
-from pathlib import Path
 import json
+from pathlib import Path
+
 import matplotlib.pyplot as plt
 import pandas as pd
 
 
-def save_reports(results: pd.DataFrame, model_metrics: dict[str, float], backtest_summary: dict[str, float], report_dir: str | Path) -> None:
+def save_reports(
+    results: pd.DataFrame,
+    model_metrics: dict[str, float],
+    backtest_summary: dict[str, float],
+    report_dir: str | Path,
+) -> None:
     out_dir = Path(report_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
 
     results.to_csv(out_dir / "trade_log.csv", index=False)
-    (out_dir / "model_metrics.json").write_text(json.dumps(model_metrics, indent=2), encoding="utf-8")
-    (out_dir / "backtest_summary.json").write_text(json.dumps(backtest_summary, indent=2), encoding="utf-8")
+    (out_dir / "model_metrics.json").write_text(
+        json.dumps(model_metrics, indent=2),
+        encoding="utf-8",
+    )
+    (out_dir / "backtest_summary.json").write_text(
+        json.dumps(backtest_summary, indent=2),
+        encoding="utf-8",
+    )
 
     if not results.empty:
         plt.figure(figsize=(10, 5))

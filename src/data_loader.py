@@ -2,8 +2,9 @@ from __future__ import annotations
 
 from pathlib import Path
 from typing import Iterable
-import requests
+
 import pandas as pd
+import requests
 
 BASE_URL = "https://www.football-data.co.uk/mmz4281/{season}/{league}.csv"
 
@@ -43,7 +44,11 @@ def _download_csv(url: str, out_path: Path) -> None:
     out_path.write_bytes(response.content)
 
 
-def ensure_data(leagues: Iterable[str], seasons: Iterable[str], cache_dir: str | Path) -> list[Path]:
+def ensure_data(
+    leagues: Iterable[str],
+    seasons: Iterable[str],
+    cache_dir: str | Path,
+) -> list[Path]:
     cache_path = Path(cache_dir)
     files: list[Path] = []
     for season in seasons:
@@ -77,7 +82,12 @@ def load_matches(csv_paths: Iterable[Path]) -> pd.DataFrame:
     all_matches["Date"] = pd.to_datetime(all_matches["Date"], dayfirst=True, errors="coerce")
     all_matches = all_matches.dropna(subset=["Date", "HomeTeam", "AwayTeam", "FTR"])
 
-    for col in [c for c in REQUIRED_COLUMNS + ODDS_CANDIDATES if c in all_matches.columns and c not in {"Date", "HomeTeam", "AwayTeam", "FTR"}]:
+    numeric_cols = [
+        c
+        for c in REQUIRED_COLUMNS + ODDS_CANDIDATES
+        if c in all_matches.columns and c not in {"Date", "HomeTeam", "AwayTeam", "FTR"}
+    ]
+    for col in numeric_cols:
         all_matches[col] = pd.to_numeric(all_matches[col], errors="coerce")
 
     all_matches = all_matches.sort_values("Date").reset_index(drop=True)

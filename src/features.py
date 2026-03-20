@@ -47,14 +47,22 @@ def _result_points(result: str, side: str) -> int:
     return 0
 
 
-def _expected_score(elo_a: float, elo_b: float, home_advantage: float = 60.0) -> tuple[float, float]:
+def _expected_score(
+    elo_a: float,
+    elo_b: float,
+    home_advantage: float = 60.0,
+) -> tuple[float, float]:
     adjusted_a = elo_a + home_advantage
     exp_a = 1.0 / (1.0 + 10 ** ((elo_b - adjusted_a) / 400.0))
     exp_b = 1.0 - exp_a
     return exp_a, exp_b
 
 
-def build_features(matches: pd.DataFrame, rolling_windows: list[int], use_elo: bool = True) -> pd.DataFrame:
+def build_features(
+    matches: pd.DataFrame,
+    rolling_windows: list[int],
+    use_elo: bool = True,
+) -> pd.DataFrame:
     if not rolling_windows:
         raise ValueError("rolling_windows must contain at least one window size.")
 
@@ -89,17 +97,29 @@ def build_features(matches: pd.DataFrame, rolling_windows: list[int], use_elo: b
             row[f"home_avg_gf_{window}"] = _safe_mean(list(home_state.gf)[-window:])
             row[f"home_avg_ga_{window}"] = _safe_mean(list(home_state.ga)[-window:])
             row[f"home_avg_shots_{window}"] = _safe_mean(list(home_state.shots_for)[-window:])
-            row[f"home_avg_shots_allowed_{window}"] = _safe_mean(list(home_state.shots_against)[-window:])
-            row[f"home_avg_sot_{window}"] = _safe_mean(list(home_state.shots_on_target_for)[-window:])
-            row[f"home_avg_sot_allowed_{window}"] = _safe_mean(list(home_state.shots_on_target_against)[-window:])
+            row[f"home_avg_shots_allowed_{window}"] = _safe_mean(
+                list(home_state.shots_against)[-window:]
+            )
+            row[f"home_avg_sot_{window}"] = _safe_mean(
+                list(home_state.shots_on_target_for)[-window:]
+            )
+            row[f"home_avg_sot_allowed_{window}"] = _safe_mean(
+                list(home_state.shots_on_target_against)[-window:]
+            )
             row[f"home_avg_points_{window}"] = _safe_mean(list(home_state.points)[-window:])
 
             row[f"away_avg_gf_{window}"] = _safe_mean(list(away_state.gf)[-window:])
             row[f"away_avg_ga_{window}"] = _safe_mean(list(away_state.ga)[-window:])
             row[f"away_avg_shots_{window}"] = _safe_mean(list(away_state.shots_for)[-window:])
-            row[f"away_avg_shots_allowed_{window}"] = _safe_mean(list(away_state.shots_against)[-window:])
-            row[f"away_avg_sot_{window}"] = _safe_mean(list(away_state.shots_on_target_for)[-window:])
-            row[f"away_avg_sot_allowed_{window}"] = _safe_mean(list(away_state.shots_on_target_against)[-window:])
+            row[f"away_avg_shots_allowed_{window}"] = _safe_mean(
+                list(away_state.shots_against)[-window:]
+            )
+            row[f"away_avg_sot_{window}"] = _safe_mean(
+                list(away_state.shots_on_target_for)[-window:]
+            )
+            row[f"away_avg_sot_allowed_{window}"] = _safe_mean(
+                list(away_state.shots_on_target_against)[-window:]
+            )
             row[f"away_avg_points_{window}"] = _safe_mean(list(away_state.points)[-window:])
 
         row["goal_diff_form_5"] = row.get("home_avg_gf_5", 0.0) - row.get("away_avg_gf_5", 0.0)
