@@ -305,6 +305,7 @@ Run linting:
 ruff check .
 ```
 
+<<<<<<< HEAD
 Run tests:
 
 ```powershell
@@ -331,3 +332,6 @@ Useful next steps if I wanted to extend this further:
 - This project is pre-match focused rather than in-play.
 - The current strategy is a simulation for portfolio purposes, not real-money trading advice.
 - Historical data quality depends on source coverage and available columns.
+=======
+
+>>>>>>> 1e48108b7e01ce475c65ff7703c84be3b2173a0d
