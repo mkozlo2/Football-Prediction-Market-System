@@ -1,33 +1,88 @@
 # Football Prediction Market Trading System
 
-An end-to-end machine learning and trading simulation project that predicts football match outcomes, converts those predictions into probabilities, compares them against bookmaker odds, and executes simulated bets with bankroll tracking.
+An operations-oriented trading support project that models football outcomes, compares internal prices to bookmaker markets, persists trading lifecycle data in SQL, monitors pipeline health, and produces simulated trading decisions with bankroll tracking.
 
-This project is designed to demonstrate more than just prediction accuracy. It shows how to turn model outputs into decisions under uncertainty, which makes it a stronger portfolio piece for data, ML, analytics, and trading-adjacent roles.
+This project is intentionally framed as more than an ML model. It is a compact example of designing, building, testing, and maintaining an internal trading tool that could sit near a desk workflow.
 
-## Why this project stands out
+## Why this project is relevant
 
-- builds a full pipeline rather than only a model
-- uses leakage-safe pre-match feature engineering
-- produces calibrated probabilities, not just class labels
-- compares model prices against market-implied prices
-- sizes bets with fractional Kelly
-- evaluates strategy performance through PnL and bankroll backtesting
+This repository is designed to show capability at the intersection of:
 
-## What it does
+- trading logic
+- Python engineering
+- SQL-backed data workflows
+- testing and maintainability
+- operational ownership across the full lifecycle
 
-The system:
+Instead of stopping at "predict the match result," the system asks:
 
-1. loads historical football match and bookmaker data
-2. engineers rolling form and Elo-based features using only past information
-3. trains a calibrated multiclass outcome model for home / draw / away
-4. converts bookmaker odds into implied probabilities
-5. identifies value bets where model probability exceeds market probability
-6. simulates trades and tracks bankroll over time
-7. exports reports, metrics, and charts
+`How would a trading-support application ingest data, price events, compare against external counterparties, log decisions, and monitor its own health?`
 
-## Recruiter summary
+## Trading operations problem
 
-Built an end-to-end football prediction market trading system in Python that ingests historical match and bookmaker data, engineers leakage-safe rolling and Elo features, trains a calibrated probabilistic classifier, compares model probabilities against market-implied prices, sizes trades with fractional Kelly, and evaluates performance with bankroll backtesting and reporting.
+The core problem is straightforward:
+
+- market odds imply a price for each outcome
+- an internal model produces its own probability estimate
+- the desk needs a repeatable way to compare those views
+- any trade recommendation needs to be logged, auditable, and measurable
+
+This system simulates that workflow by:
+
+1. ingesting historical market and match data
+2. engineering pre-match features with leakage control
+3. training a calibrated model to produce internal prices
+4. comparing internal prices against bookmaker prices
+5. generating simulated trade signals and Kelly-sized stakes
+6. storing lifecycle artifacts in SQLite for later querying
+7. monitoring data freshness and model health
+
+## Full lifecycle framing
+
+The project is structured around ownership across the full lifecycle:
+
+- Design: define pricing logic, edge thresholds, and persistence approach
+- Build: implement a reproducible Python pipeline with SQL storage
+- Test: validate feature logic, signal generation, loader behavior, and backtest edge cases
+- Maintain: monitor stale data and degraded model performance
+
+## Key design decisions
+
+### Why calibrated probabilities?
+
+Trading decisions depend on price quality, not just class predictions. A calibrated model is more appropriate than a raw classifier because the output needs to be interpretable as a probability before comparing it to external market prices.
+
+### Why fractional Kelly?
+
+Kelly sizing connects model confidence to stake sizing in a disciplined way. Using a fractional Kelly cap makes the strategy less aggressive and more realistic for risk-controlled simulation.
+
+### Why SQLite?
+
+The role emphasis includes SQL. This project now persists key datasets and outputs to SQLite so the workflow is queryable and closer to a real internal tool:
+
+- raw loaded matches
+- engineered feature snapshot
+- trade signals
+- backtest results
+- summary records for model metrics and pipeline health
+
+This keeps the setup local and simple while still demonstrating relational persistence and query-friendly design.
+
+## Architecture
+
+```text
+Historical football data + bookmaker odds
+        -> load and clean raw data
+        -> persist matches to SQLite
+        -> engineer rolling form and Elo features
+        -> persist feature snapshot to SQLite
+        -> train calibrated model
+        -> compare internal probabilities vs market probabilities
+        -> generate trade signals and Kelly-sized stakes
+        -> backtest bankroll impact
+        -> persist outputs and health summaries
+        -> export reports and monitoring logs
+```
 
 ## Tech stack
 
@@ -35,23 +90,13 @@ Built an end-to-end football prediction market trading system in Python that ing
 - pandas
 - NumPy
 - scikit-learn
+- SQLite
 - matplotlib
 - PyYAML
 - pytest
 - Ruff
+- GitHub Actions
 - Docker
-
-## Pipeline overview
-
-```text
-Historical football data + odds
-        -> data loading and cleaning
-        -> rolling form + Elo features
-        -> calibrated outcome model
-        -> market probability comparison
-        -> edge detection + Kelly sizing
-        -> backtest and reporting
-```
 
 ## Project structure
 
@@ -65,24 +110,31 @@ football_prediction_market_system/
 |-- requirements.txt
 |-- requirements-dev.txt
 |-- src/
+|   |-- api.py
 |   |-- backtest.py
 |   |-- data_loader.py
 |   |-- features.py
 |   |-- modeling.py
+|   |-- monitor.py
 |   |-- reporting.py
 |   |-- settings.py
+|   |-- storage.py
 |   `-- strategy.py
-`-- tests/
-    |-- test_backtest.py
-    |-- test_features.py
-    `-- test_strategy.py
+|-- tests/
+|   |-- test_api.py
+|   |-- test_backtest.py
+|   |-- test_data_loader.py
+|   |-- test_features.py
+|   |-- test_monitor.py
+|   `-- test_strategy.py
+`-- .github/workflows/ci.yml
 ```
 
 ## Data source
 
 Historical match and odds data comes from [football-data.co.uk](https://www.football-data.co.uk/).
 
-The default configuration includes:
+The default configuration uses:
 
 - Premier League: `E0`
 - Bundesliga: `D1`
@@ -96,45 +148,104 @@ Across these seasons:
 - `2023/24`
 - `2024/25`
 
-## Features and modeling
+## SQL layer
 
-The model uses only information available before kickoff, including:
+The pipeline writes key data into a local SQLite database at:
 
-- rolling goals for and against
-- rolling shots and shots on target
-- rolling points form
-- home-away feature differences
-- Elo ratings and Elo differentials
+`artifacts/sql/pipeline.db`
 
-The modeling pipeline includes:
+Example stored tables:
 
-- median imputation
-- feature scaling
-- multinomial logistic regression
-- probability calibration with `CalibratedClassifierCV`
+- `matches`
+- `features`
+- `features_snapshot`
+- `signals`
+- `backtest_results`
+- `model_metrics`
+- `backtest_summary`
+- `health_summary`
 
-## Strategy logic
+This adds a queryable persistence layer that could support downstream reconciliations, audit trails, or desk reporting.
 
-For each match:
+## Monitoring and maintainability
 
-1. predict home, draw, and away probabilities
-2. infer market probabilities from bookmaker odds
-3. remove overround
-4. calculate edge between model and market probabilities
-5. place a simulated bet only when edge exceeds a threshold
-6. size the stake with fractional Kelly
+The monitoring module checks:
+
+- data staleness using the most recent match date
+- low model accuracy relative to a configured threshold
+- high log loss relative to a configured threshold
+
+It writes a structured health log to:
+
+`artifacts/logs/pipeline_health.json`
+
+This is a small but useful example of how an internal ops-facing tool should surface its own health rather than silently drifting.
 
 ## Outputs
 
-Running the pipeline generates artifacts such as:
+Running the pipeline produces:
 
-- trained model files
-- saved feature column metadata
-- model metrics
-- trade log CSV
-- backtest summary JSON
-- bankroll curve chart
-- edge distribution chart
+- trained model artifacts
+- metrics JSON files
+- trade logs and signal exports
+- bankroll and edge charts
+- SQLite tables for lifecycle data
+- structured health logs
+
+## How this could integrate with a desk
+
+In a fuller trading environment, the same pattern could feed downstream systems such as:
+
+- an internal pricing or quoting dashboard
+- a monitoring panel for stale data or model degradation
+- an execution support tool where analysts review generated edges
+- reconciliation or audit workflows backed by SQL queries
+
+The current repository is still a local project, but the architecture is intended to point toward that operational model.
+
+## FastAPI service
+
+To make the project closer to a desk-facing internal application, the repository now includes a small FastAPI layer in [src/api.py](/C:/Users/mkozl/OneDrive/Dokumenty/football_prediction_market_system/src/api.py).
+
+Available endpoints:
+
+- `GET /health`
+- `POST /predict`
+
+The API loads the saved model artifacts from `artifacts/models/`, accepts a feature payload plus market odds, and returns:
+
+- internal model probabilities
+- market-implied probabilities
+- pricing edges
+- recommended action
+- Kelly-based stake fraction and stake amount
+
+Run the API locally after training the model:
+
+```powershell
+python main.py --config config.yaml
+uvicorn src.api:app --reload
+```
+
+Example request:
+
+```json
+{
+  "features": {
+    "home_avg_gf_5": 1.8,
+    "home_avg_ga_5": 0.9,
+    "away_avg_gf_5": 1.1,
+    "away_avg_ga_5": 1.4,
+    "elo_diff": 55.0
+  },
+  "odds": {
+    "home": 2.35,
+    "draw": 3.30,
+    "away": 3.10
+  },
+  "bankroll": 1000.0
+}
+```
 
 ## Quick start
 
@@ -147,10 +258,12 @@ pip install -r requirements.txt
 python main.py --config config.yaml
 ```
 
-Generated files are written to:
+Artifacts are written to:
 
 - `artifacts/models/`
 - `artifacts/reports/`
+- `artifacts/sql/`
+- `artifacts/logs/`
 
 ## Docker
 
@@ -172,18 +285,18 @@ On PowerShell, if `${PWD}` causes issues:
 docker run --rm -v "${PWD}\artifacts:/app/artifacts" football-prediction-market
 ```
 
-## Testing and linting
+Run the API in Docker after artifacts exist locally:
+
+```bash
+docker run --rm -p 8000:8000 -v ${PWD}/artifacts:/app/artifacts football-prediction-market uvicorn src.api:app --host 0.0.0.0 --port 8000
+```
+
+## Testing and CI
 
 Install development dependencies:
 
 ```powershell
 pip install -r requirements-dev.txt
-```
-
-Run tests:
-
-```powershell
-pytest
 ```
 
 Run linting:
@@ -192,32 +305,29 @@ Run linting:
 ruff check .
 ```
 
-## Why this is portfolio-relevant
+Run tests:
 
-This project demonstrates:
+```powershell
+pytest
+```
 
-- machine learning pipeline design
-- feature engineering with temporal leakage control
-- probabilistic prediction
-- market pricing comparison
-- risk-aware decision logic
-- backtesting and performance analysis
-- reproducible project setup with Docker
-- code quality via tests and linting
+GitHub Actions runs both checks automatically on pushes and pull requests.
+
+## Portfolio summary
+
+Built an operations-oriented football prediction market system in Python that ingests historical match and bookmaker data, engineers leakage-safe features, trains a calibrated pricing model, compares internal probabilities against market-implied prices, persists lifecycle data to SQLite, monitors pipeline health, and evaluates trading decisions through Kelly-sized backtesting.
 
 ## Next upgrades
 
-Strong next improvements would be:
+Useful next steps if I wanted to extend this further:
 
-- add GitHub Actions for CI
-- add a FastAPI prediction endpoint
-- add a Streamlit dashboard
-- compare against naive and market baselines
-- add calibration plots and drawdown analysis
-- replace logistic regression with a tree-based model such as LightGBM or XGBoost
+- expose SQL-backed analytics through a small dashboard
+- add baseline comparisons and drawdown analysis
+- schedule automated refresh jobs
+- add alert delivery beyond JSON logs
 
 ## Notes
 
-- This project is pre-match focused, not in-play.
-- Results depend on the quality and completeness of historical source data.
-- The strategy is for simulation and portfolio demonstration, not real-money betting advice.
+- This project is pre-match focused rather than in-play.
+- The current strategy is a simulation for portfolio purposes, not real-money trading advice.
+- Historical data quality depends on source coverage and available columns.

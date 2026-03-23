@@ -39,3 +39,10 @@ strategy:
 outputs:
   model_dir: artifacts/models
   report_dir: artifacts/reports
+  database_path: artifacts/sql/pipeline.db
+  log_dir: artifacts/logs
+
+monitor:
+  max_data_age_days: 14
+  min_accuracy: 0.45
+  max_log_loss: 1.10

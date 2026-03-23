@@ -39,6 +39,13 @@ class ModelArtifacts:
     metrics: dict[str, float]
 
 
+@dataclass
+class SavedModelBundle:
+    model: CalibratedClassifierCV
+    feature_columns: list[str]
+    metrics: dict[str, float]
+
+
 def train_outcome_model(feature_df: pd.DataFrame, config: dict) -> ModelArtifacts:
     df = feature_df.sort_values("Date").reset_index(drop=True).copy()
     df = df.dropna(subset=["target"])
@@ -127,4 +134,18 @@ def save_model(artifacts: ModelArtifacts, model_dir: str | Path) -> None:
     (model_path / "metrics.json").write_text(
         json.dumps(artifacts.metrics, indent=2),
         encoding="utf-8",
+    )
+
+
+def load_saved_model(model_dir: str | Path) -> SavedModelBundle:
+    model_path = Path(model_dir)
+    model = joblib.load(model_path / "outcome_model.joblib")
+    feature_columns = json.loads(
+        (model_path / "feature_columns.json").read_text(encoding="utf-8")
+    )
+    metrics = json.loads((model_path / "metrics.json").read_text(encoding="utf-8"))
+    return SavedModelBundle(
+        model=model,
+        feature_columns=feature_columns,
+        metrics=metrics,
     )

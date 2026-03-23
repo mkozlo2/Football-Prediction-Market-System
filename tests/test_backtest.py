@@ -37,3 +37,22 @@ def test_run_backtest_updates_bankroll_and_summary() -> None:
     assert round(summary["total_staked"], 2) == 21.0
     assert summary["bets_placed"] == 2
     assert summary["bet_hit_rate"] == 0.5
+
+
+def test_run_backtest_handles_all_hold_signals() -> None:
+    signals = pd.DataFrame(
+        [
+            {
+                "Date": pd.Timestamp("2024-04-01"),
+                "signal": "HOLD",
+                "stake_fraction": 0.0,
+                "pnl_multiple": 0.0,
+            }
+        ]
+    )
+
+    results, summary = run_backtest(signals, starting_bankroll=250.0)
+
+    assert results.loc[0, "stake_amount"] == 0.0
+    assert summary["ending_bankroll"] == 250.0
+    assert summary["bets_placed"] == 0

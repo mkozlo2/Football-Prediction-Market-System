@@ -6,6 +6,8 @@ from typing import Iterable
 import pandas as pd
 import requests
 
+from src.storage import read_table, write_table
+
 BASE_URL = "https://www.football-data.co.uk/mmz4281/{season}/{league}.csv"
 
 REQUIRED_COLUMNS = [
@@ -93,3 +95,14 @@ def load_matches(csv_paths: Iterable[Path]) -> pd.DataFrame:
     all_matches = all_matches.sort_values("Date").reset_index(drop=True)
     all_matches["match_id"] = all_matches.index.astype(str)
     return all_matches
+
+
+def persist_matches(matches: pd.DataFrame, db_path: str | Path) -> None:
+    write_table(matches, db_path, "matches")
+
+
+def load_matches_from_db(db_path: str | Path) -> pd.DataFrame:
+    matches = read_table(db_path, "SELECT * FROM matches ORDER BY Date")
+    if "Date" in matches.columns:
+        matches["Date"] = pd.to_datetime(matches["Date"], errors="coerce")
+    return matches

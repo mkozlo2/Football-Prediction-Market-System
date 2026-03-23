@@ -7,7 +7,7 @@ from typing import Any
 import yaml
 
 
-REQUIRED_TOP_LEVEL_KEYS = {"data", "features", "model", "strategy", "outputs"}
+REQUIRED_TOP_LEVEL_KEYS = {"data", "features", "model", "strategy", "outputs", "monitor"}
 
 
 @dataclass
@@ -34,6 +34,10 @@ class Settings:
     def outputs(self) -> dict[str, Any]:
         return self.raw["outputs"]
 
+    @property
+    def monitor(self) -> dict[str, Any]:
+        return self.raw["monitor"]
+
 
 def load_settings(path: str | Path = "config.yaml") -> Settings:
     config_path = Path(path)
@@ -45,7 +49,7 @@ def load_settings(path: str | Path = "config.yaml") -> Settings:
         missing_str = ", ".join(missing)
         raise ValueError(
             f"Config file {config_path} is missing required sections: {missing_str}. "
-            "Expected top-level keys: data, features, model, strategy, outputs."
+            "Expected top-level keys: data, features, model, strategy, outputs, monitor."
         )
 
     return Settings(raw=raw)

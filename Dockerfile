@@ -14,4 +14,6 @@ COPY src ./src
 
 RUN mkdir -p /app/artifacts /app/data/raw
 
+EXPOSE 8000
+
 CMD ["python", "main.py", "--config", "config.yaml"]
