@@ -192,32 +192,4 @@ Run linting:
 ruff check .
 ```
 
-## Why this is portfolio-relevant
 
-This project demonstrates:
-
-- machine learning pipeline design
-- feature engineering with temporal leakage control
-- probabilistic prediction
-- market pricing comparison
-- risk-aware decision logic
-- backtesting and performance analysis
-- reproducible project setup with Docker
-- code quality via tests and linting
-
-## Next upgrades
-
-Strong next improvements would be:
-
-- add GitHub Actions for CI
-- add a FastAPI prediction endpoint
-- add a Streamlit dashboard
-- compare against naive and market baselines
-- add calibration plots and drawdown analysis
-- replace logistic regression with a tree-based model such as LightGBM or XGBoost
-
-## Notes
-
-- This project is pre-match focused, not in-play.
-- Results depend on the quality and completeness of historical source data.
-- The strategy is for simulation and portfolio demonstration, not real-money betting advice.
